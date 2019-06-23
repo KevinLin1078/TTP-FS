@@ -1,0 +1,68 @@
+<html> 
+    <head> 
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        <!-- <script src="//code.jquery.com/jquery-1.11.1.min.js"></script> -->
+        <link rel="stylesheet" href="../static/css/index.css">
+        
+    <!------ Include the above in your HEAD tag ---------->
+    </head>  
+    <body >
+        <div class="container1">
+     
+            {% if login == 0  %}<button onclick="window.location.href='/login'"/> Login</button>{% endif %}
+			{% if login == 0  %}<button onclick="window.location.href='/signup'"> Sign Up</button>{% endif %}
+            {% if login == 1  %}<button onclick="window.location.href='/portfolio'" > Portfolio</button>{% endif %}
+            {% if login == 1  %} <button id='logout'> Logout</button>{% endif %}
+            <h2>Stock Exchange</h2>
+           
+        </div>
+        <div class="section" >
+                <div >
+
+                    <!-- Python code Goes here -->
+                    <div class="card">
+                        <strong>APPL</strong>
+                        <p class="quote">Apple $1.02/pc</p>
+                    </div>
+                    
+                    <div class="card">
+                            <strong>PEACH</strong>
+                        <p class="quote">Peach $1.23/pc</p>
+                    </div>
+                    <!--  -->
+                </div>
+      </div>
+       
+    <style>
+        .card {
+            border: 1px solid lightgray;
+            border-radius: 80px;
+            padding: 10px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 2px 2px 2px grey;
+            margin-top: 20px;
+            margin-left: 300px;
+        }
+        .sextion {
+            background-color: #0074D9;
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+            }
+
+        .card, #dog-cards2 {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            
+        }
+
+    </style>
+
+        
+    </body>
+
+    </html>
