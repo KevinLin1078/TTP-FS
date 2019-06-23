@@ -18,27 +18,26 @@ client = MongoClient('127.0.0.1', 27017)
 db = client.stockDB
 userTable = db['user'] 
 tranTable = db['transaction']
+stockTable = db['stock']
 
 
 @bp.route('/', methods=['GET','POST'])
 def index():
-	return redirect(url_for('routes.portfolio'))
+	return redirect(url_for('routes.login'))
 
 
 @bp.route('/signup', methods=["POST", "GET"])
 def signup():	
 	if request.method == "GET":
-		print "================== " + request.cookies.get('username')
 		return render_template('signup.html')
-
+	
 	username = request.form['username']
 	password = request.form['password'] 
 	email = request.form['email'] 
-
 	email_exist = userTable.find_one({'email': email})
 	
 	if email_exist != None :
-		return "Email already exist"
+		return render_template("signup.html" ,error ="*Email already exist")
 	
 	data ={}
 	data['username'] = username
@@ -60,8 +59,7 @@ def login():
 	if valid == None:
 		return render_template("login.html", message="Invalid username and password")
 	
-	#If user is logged in, send back a cookie and redirect user to portfolio page
-	response = make_response(render_template("portfolio.html", login=1) )	
+	response = make_response(redirect('/portfolio') )	
 	response.set_cookie('username', username)
 	return response
 
@@ -69,16 +67,54 @@ def login():
 @bp.route('/logout')
 def logout():
 	response = make_response(redirect('/login'))	
-	response.set_cookie('username', "")
+	response.set_cookie('username', "-", expires=0)
 	return response
 
 @bp.route('/portfolio', methods=["GET"])
 def portfolio():
-	user = request.cookies.get('username')
 	login = 0
+	cash = 0
+	user = request.cookies.get('username')	
+	
 	if user != None:
 		login = 1
-	return render_template("portfolio.html", login=login)
+		cash = userTable.find_one({'username': user})['cash']
+
+	stocks = generateStock()
+	return render_template("portfolio.html", login=login, stocks=stocks, cash=cash)
+
+
+
+
+
+
+def generateStock():
+	from iexfinance.stocks import Stock
+	import urllib, json, random
+	
+	arr = []
+
+	while len(arr) < 5:
+		num = random.randint(0,8820)
+		result = stockTable.find_one({'index': num})
+		symbol = result['symbol']
+		stock = Stock(symbol.encode("utf-8"), token="sk_b54033ac091e48f0a23bbaf9e0273ce9")
+
+		stock = stock.get_quote()
+		
+		item ={
+					'symbol': symbol,
+					'price' : stock['latestPrice'],
+					'previous': stock['previousClose'],
+					'change' : stock['changePercent']
+				}
+		if stock['changePercent'] < 0:
+			item['color'] = -1
+		else:
+			item['color'] = 1
+
+		arr.append(item)
+	return arr
 
 
 
@@ -88,7 +124,7 @@ def portfolio():
 
 
 
-
+'''
 @bp.route('/clean', methods=["POST", "GET"])
 def cleanDataBase():
 	userTable.delete_many({})
@@ -104,5 +140,5 @@ def showDB():
 	for i in res:
 		print i
 	
-	return  'USER count = ' + str(count)    
-
+	return  'USER count = ' + str(count) 
+'''

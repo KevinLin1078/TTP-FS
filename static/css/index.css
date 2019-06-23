@@ -143,3 +143,24 @@ span.tags  {
   appearance: button;
 }
 
+
+
+.card {
+  border: 1px solid lightgray;
+  border-radius: 80px;
+  padding: 10px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 2px 2px 2px grey;
+  margin-top: 20px;
+  margin-left: 300px;
+}
+.card{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  
+}
+.card:hover {
+  border-color: black
+}
