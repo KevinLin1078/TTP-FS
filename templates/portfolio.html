@@ -3,12 +3,13 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
         <link rel="stylesheet" href="../static/css/index.css">
         
     <!------ Include the above in your HEAD tag ---------->
     </head>  
-    <body >
+    <body class="container1">
         <div class="container1">
      
             {% if login == 0  %}<button onclick="window.location.href='/login'"/> Login</button>{% endif %}
@@ -18,12 +19,6 @@
             <h2>Portfolio {% if login == 1  %}${{cash}}  {% endif %} </h2>
            
         </div>
-
-        <form> 
-            <input type="text" placeholder="Ticker"  name='ticker' />
-            <br>
-            <input type="text" placeholder="Quantity"  name='quantity' />
-        </form>
         
         <div class="section" >
                 <div >
@@ -31,25 +26,140 @@
                     {% for stock in stocks %}
                         
                         <div class="card"  {% if stock['color'] == -1  %} style="background-color: #ff948e" {% else %}  style="background-color: #b8ffa8"{% endif %} >
-                            <strong>{{stock['symbol']}}</strong>
+                            <strong id='symbol'>{{stock['symbol']}}</strong>
                             <p>Previous: ${{stock['previous']}} </p>
                             <p>Current: ${{stock['price']}}  </p>
                         </div>
-
-
                     {% endfor %}
                     <!--  -->
                 </div>
+
+            <form> 
+		        
+		        <input type="text" placeholder="Ticker"  name='ticker' id="stockID"/>
+		        <input type='button' value='Search' id='searchButton'/> <br> <br>
+		        <input type="number" placeholder="Quantity"  id='quantity' min="1" />
+		        <input type='button' value='Purchase' id='purchaseButton' /> <br> <br>
+		        <h3> Total: $<span id='total' >0</span> </h3>
+
+		        <div class="card"  id='hidenCard' style="margin-left: -20px;"> <!-- style="background-color: #ff948e" style="background-color: #b8ffa8"  -->
+		            <p style="font-size: 20px" id='element' ></p>
+		            <p >Previous: <span id='previous'></span> </p>
+		            <p >Current: <span id='current'></span>  </p>
+		        </div>
+
+
+	    	</form>
       </div>
-       
+		
 
 
 
-        
     </body>
     <style>
-        form{
-            margin-left: 700px;
+        .section{
+            margin-top:60px;
+            margin-left:40%;
         }
+        form{
+            
+            margin-left: -300px;
+            margin-top: -460px;
+        }
+        
     </style>
+
+
+    <script>
+    	// -------------------------   JQuery --------------------------------------------------
+   		$(document).ready(function(){
+
+			$("#searchButton").click( function(e) {
+				searchStock()
+			})
+
+
+  			$('#quantity').on('input', function() {
+				setTimeout(function(){ 
+					calculatePrice()
+				}, 50);
+			});
+
+  			$('#quantity').on('input', function() {
+				setTimeout(function(){ 
+					calculatePrice()
+				}, 50);
+			});
+
+			$("#purchaseButton").click( function(e) {
+				purchase()
+			})
+
+		})
+
+		// ------------------------ Search and Get Stock Info ----------------------------------------------	 
+   		function searchStock(){
+   			symbol = $('#stockID').val().toUpperCase()
+
+			$.ajax({
+				url: '/getStock',
+				type: 'POST',
+				contentType:"application/json",
+				dataType:"json",
+				data: JSON.stringify({'symbol': symbol}),
+				success: function (data){
+					$('#element').html(symbol)
+					$('#previous').html( data['previous'])
+					$('#current').html(data['current'])
+					if(data['change'] < 0){
+						$('#hidenCard').css("background-color" ,"#ff948e")
+					}else{
+						$('#hidenCard').css("background-color", "#b8ffa8")
+					}
+					$('#hiddenCard').show()
+
+				},
+				error: function(err){
+					alert("Item cannot be found")
+				}
+			})
+   		}
+   		// ------------------------ Calculate Stock * Amount ----------------------------------------------	 
+   		function calculatePrice(){
+   			price = parseFloat( $("#current").html() )
+   			amount = parseInt( $("#quantity").val() )
+   			price = price * amount
+   			$('#total').html(price)
+
+   		}
+
+
+
+   		// ------------------------ Purchase ----------------------------------------------	 
+   		function purchase(){
+   			symbol = $('#stockID').val().toUpperCase()
+   			total = parseFloat( $("#total").html() )
+   			
+   			alert("Current = " + total )
+   			$.ajax({
+				url: '/purchase',
+				type: 'POST',
+				contentType:"application/json",
+				dataType:"json",
+				data: JSON.stringify({'symbol': symbol,'price':total}),
+				success: function (data){	
+
+				},
+				error: function(err){
+					alert("Item cannot be found")
+				}
+			})
+
+
+   		}
+
+
+
+
+    </script>
 </html>

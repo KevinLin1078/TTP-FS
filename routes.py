@@ -5,6 +5,9 @@ from pymongo import MongoClient
 import time, random, string
 from bson.objectid import ObjectId
 
+from iexfinance.stocks import Stock
+import urllib, json, random
+
 '''
 sudo service mongodb start
 
@@ -35,9 +38,10 @@ def signup():
 	password = request.form['password'] 
 	email = request.form['email'] 
 	email_exist = userTable.find_one({'email': email})
-	
-	if email_exist != None :
-		return render_template("signup.html" ,error ="*Email already exist")
+	user_exist = userTable.find_one({'username': username})
+
+	if email_exist != None or user_exist != None:
+		return render_template("signup.html" ,error ="*Username/Email already exist")
 	
 	data ={}
 	data['username'] = username
@@ -83,25 +87,56 @@ def portfolio():
 	stocks = generateStock()
 	return render_template("portfolio.html", login=login, stocks=stocks, cash=cash)
 
+@bp.route('/getStock', methods=["POST"])
+def getStock():
+	form = request.json
+	symbol = form['symbol']
 
+	print("==================== " , symbol)
+	if 'previous' in form:
+		obj={ 'symbol': current, 'previous': form['previous'], 'current' : form['current'] }
+		return responseOK({'symbol': symbol, })
+	else:
+		stock = getStockInfo(symbol)
+		item =	{	
+					'symbol': symbol,
+					'current' : stock['latestPrice'],
+					'previous': stock['previousClose'],
+					'change' : stock['changePercent']
+				}
+		return responseOK(item)
 
+@bp.route('/purchase', methods=["POST"])
+def purchase():
+	user = request.cookies.get('username').encode("utf-8")
 
+	form = request.json
+	symbol = form['symbol']
+	price = form['price']
+
+	print(symbol, float(price) )
+
+	userTable.find_one({'username' : user})
+
+	item=	{ 
+				'username': user,
+				'symbol' : symbol,
+				'price' : price 
+			}
+
+	#tranTable.insert(item)
+	return responseOK({'status': 'OK'})
 
 
 def generateStock():
-	from iexfinance.stocks import Stock
-	import urllib, json, random
-	
 	arr = []
 
 	while len(arr) < 5:
 		num = random.randint(0,8820)
 		result = stockTable.find_one({'index': num})
 		symbol = result['symbol']
-		stock = Stock(symbol.encode("utf-8"), token="sk_b54033ac091e48f0a23bbaf9e0273ce9")
 
-		stock = stock.get_quote()
-		
+		stock = getStockInfo(symbol)
 		item ={
 					'symbol': symbol,
 					'price' : stock['latestPrice'],
@@ -117,12 +152,18 @@ def generateStock():
 	return arr
 
 
+def responseOK(stat):
+	data = stat
+	jsonData = json.dumps(data)
+	respond = Response(jsonData,status=200, mimetype='application/json')
+	return respond
 
 
 
-
-
-
+def getStockInfo(symbol):
+	stock = Stock(symbol.encode("utf-8"), token="sk_b54033ac091e48f0a23bbaf9e0273ce9")
+	stock = stock.get_quote()
+	return stock
 
 '''
 @bp.route('/clean', methods=["POST", "GET"])
