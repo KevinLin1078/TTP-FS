@@ -14,9 +14,10 @@
      
             {% if login == 0  %}<button onclick="window.location.href='/login'"/> Login</button>{% endif %}
 			{% if login == 0  %}<button onclick="window.location.href='/signup'"> Sign Up</button>{% endif %}
-            {% if login == 1  %}<button onclick="window.location.href='/portfolio'" > Portfolio</button>{% endif %}
+            {% if login == 1  %}<button style='background-color: red' onclick="window.location.href='/portfolio'" > Portfolio</button>{% endif %}
+            {% if login == 1  %} <button onclick="window.location.href='/transaction'"/> View Transactions</button>{% endif %}
             {% if login == 1  %} <button onclick="window.location.href='/logout'"/> Logout</button>{% endif %}
-            <h2>Portfolio {% if login == 1  %}$<span id='portfolioCash' >{{cash}}</span>  {% endif %} </h2>
+            <h2> {% if login == 1  %}Portfolio $<span id='portfolioCash' >{{cash}}</span>  {% endif %} </h2>
            
         </div>
         
@@ -39,7 +40,7 @@
 		        <input type="text" placeholder="Ticker"  name='ticker' id="stockID"/>
 		        <input type='button' value='Search' id='searchButton'/> <br> <br>
 		        <input type="number" placeholder="Quantity"  id='quantity' min="1" />
-		        <input type='button' value='Purchase' id='purchaseButton' /> <br> <br>
+		        {% if login == 1  %} <input type='button' value='Purchase' id='purchaseButton' />  {% endif %}<br> <br>
 		        <h3> Total: $<span id='total' >0</span> </h3>
 
 		        <div class="card"  id='hidenCard' style="margin-left: -20px;"> <!-- style="background-color: #ff948e" style="background-color: #b8ffa8"  -->

@@ -132,11 +132,19 @@ def purchase():
 		new_value = {'$set': {'shareholder': shareholder}}
 		
 		stockTable.update_one(query, new_value) # add 1 to shareholder
-		
-		stockHolderTable.insert({'username': user, 'symbol': symbol })
+		# if first time buyer, then set the quantity to amount bought
+		stockHolderTable.insert({'username': user, 'symbol': symbol, 'quantity': quantity})
+	else:
+		# if not first time buyer, then add additional qunatity to stockHolderTable
+		new_quantity = stockHolderTable.find_one({'username': user, 'symbol': symbol})
+		new_quantity=new_quantity['quantity'] + quantity
 
+		query = {'username': user, 'symbol': symbol}
+		new_value = {'$set': {'quantity': new_quantity}}
+		stockHolderTable.update_one(query, new_value)
 
-	#--------------------Check if stock existed in previous trnsactions----------------------------------
+	
+	# Get user current amount of cash
 	item = userTable.find_one({'username' : user})
 	cash = item['cash']
 
@@ -162,15 +170,34 @@ def purchase():
 
 
 @bp.route('/transaction', methods=["GET"])
-def purchase():
-	user = request.cookies.get('username').encode("utf-8")
+def transaction():
+	user = request.cookies.get('username')
+	login = 0
+	cash = 0
+	user = request.cookies.get('username')	
 	
+	if user != None:
+		login = 1
+		cash = userTable.find_one({'username': user})['cash']
+
+	if login == 1:
+		stocks = tranTable.find({"username": user})
+		return render_template('transaction.html', login=login, cash=cash, stocks=stocks)
+	
+	return render_template('transaction.html', login=login, cash=cash)
 
 
-@bp.route('/clean', methods=["POST", "GET"])
-def cleanDataBase():
+@bp.route('/restart', methods=["POST", "GET"])
+def restart():
 	userTable.delete_many({})
 	tranTable.delete_many({})
+	stockTable.delete_many({})
+	stockHolderTable.delete_many({})
+	
+	import addData
+	addData.deleteAndAddDatabase()
+
+
 	return "clear all"
 
 @bp.route('/show', methods=["GET"])

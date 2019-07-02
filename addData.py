@@ -40,12 +40,12 @@ def deleteAndAddDatabase():
 
 
 
-from iexfinance.stocks import Stock
+# from iexfinance.stocks import Stock
 
-a = Stock("AAwerewrwPLAA", token="sk_b54033ac091e48f0a23bbaf9e0273ce9")
-try:
-    a.get_price()
-except:
-    print "This is an error message!"
+# a = Stock("AAwerewrwPLAA", token="sk_b54033ac091e48f0a23bbaf9e0273ce9")
+# try:
+#     a.get_price()
+# except:
+#     print "This is an error message!"
 
-print 'done'
+# print 'done'

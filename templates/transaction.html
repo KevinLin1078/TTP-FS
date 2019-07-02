@@ -1,0 +1,57 @@
+<html> 
+    <head> 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <link rel="stylesheet" href="../static/css/index.css">
+        
+    <!------ Include the above in your HEAD tag ---------->
+    </head>  
+    <body class="container1">
+        <div class="container1">
+     
+            {% if login == 0  %}<button onclick="window.location.href='/login'"/> Login</button>{% endif %}
+			{% if login == 0  %}<button onclick="window.location.href='/signup'"> Sign Up</button>{% endif %}
+            {% if login == 1  %}<button onclick="window.location.href='/portfolio'" > Portfolio</button>{% endif %}
+            {% if login == 1  %} <button style='background-color: red' onclick="window.location.href='/transaction'"/> View Transactions</button>{% endif %}
+            {% if login == 1  %} <button onclick="window.location.href='/logout'"/> Logout</button>{% endif %}
+            <h2> {% if login == 1  %}Portfolio $<span id='portfolioCash' >{{cash}}</span>  {% endif %} </h2>
+           
+        </div>
+        
+        <div class="section" >
+                <div >
+                    <!-- Python code Goes here -->
+                    {% for stock in stocks %}
+                        
+                        <div class="card"  {% if stock['color'] == -1  %} style="background-color: #ff948e" {% else %}  style="background-color: #b8ffa8"{% endif %} >
+                            <strong id='symbol'>{{stock['symbol']}}</strong>
+                            <p>Total purchased: ${{stock['price']}} </p>
+                            <p># of stocks: ${{stock['quantity']}}  </p>
+                            <p>Unit Price: ${{stock['unit']}}  </p>
+                        </div>
+                    {% endfor %}
+                    <!--  -->
+                </div>
+      </div>
+		
+
+
+
+    </body>
+    <style>
+        .section{
+            margin-top:60px;
+            margin-left:40%;
+        }
+        form{
+            
+            margin-left: -300px;
+            margin-top: -460px;
+        }
+        
+    </style>
+
+</html>
