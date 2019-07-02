@@ -16,7 +16,7 @@
 			{% if login == 0  %}<button onclick="window.location.href='/signup'"> Sign Up</button>{% endif %}
             {% if login == 1  %}<button onclick="window.location.href='/portfolio'" > Portfolio</button>{% endif %}
             {% if login == 1  %} <button onclick="window.location.href='/logout'"/> Logout</button>{% endif %}
-            <h2>Portfolio {% if login == 1  %}${{cash}}  {% endif %} </h2>
+            <h2>Portfolio {% if login == 1  %}$<span id='portfolioCash' >{{cash}}</span>  {% endif %} </h2>
            
         </div>
         
@@ -139,23 +139,31 @@
    		function purchase(){
    			symbol = $('#stockID').val().toUpperCase()
    			total = parseFloat( $("#total").html() )
-   			
-   			alert("Current = " + total )
-   			$.ajax({
-				url: '/purchase',
-				type: 'POST',
-				contentType:"application/json",
-				dataType:"json",
-				data: JSON.stringify({'symbol': symbol,'price':total}),
-				success: function (data){	
+   			unitPrice = parseFloat($('#current').html() )
+   			quantity = parseInt( $('#quantity').val() )
+   			portfolioCash =  parseFloat($('#portfolioCash').html())
+			
+			
 
-				},
-				error: function(err){
-					alert("Item cannot be found")
-				}
-			})
+   			if( total <= portfolioCash){
+	   			$.ajax({
+					url: '/purchase',
+					type: 'POST',
+					contentType:"application/json",
+					dataType:"json",
+					data: JSON.stringify({'symbol': symbol,'price':total, 'unit': unitPrice, 'quantity': quantity}),
+					success: function (data){	
+						alert("Successfully Purchased!")
+						location.reload();
+					},
+					error: function(err){
+						alert("Item cannot be found")
+					}
+				})
 
-
+	   		}else{
+	   			alert("Not enough cash to purchase this quantity of stock" + total + "  " + portfolioCash)
+	   		}
    		}
 
 

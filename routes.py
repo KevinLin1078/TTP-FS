@@ -21,8 +21,8 @@ client = MongoClient('127.0.0.1', 27017)
 db = client.stockDB
 userTable = db['user'] 
 tranTable = db['transaction']
-stockTable = db['stock']
-
+stockTable = db['stock'] #Only contains name of stock
+stockHolderTable = db['stockHolder'] 
 
 @bp.route('/', methods=['GET','POST'])
 def index():
@@ -74,28 +74,32 @@ def logout():
 	response.set_cookie('username', "-", expires=0)
 	return response
 
+
+# Display portfolio along with 5 stock sample
 @bp.route('/portfolio', methods=["GET"])
 def portfolio():
 	login = 0
 	cash = 0
 	user = request.cookies.get('username')	
-	
+	# If user is not logged in, then notify the state of session
 	if user != None:
 		login = 1
 		cash = userTable.find_one({'username': user})['cash']
 
+	# Generate 5 sample stocks
 	stocks = generateStock()
 	return render_template("portfolio.html", login=login, stocks=stocks, cash=cash)
 
+
+# Get the price and data of a single stock using AJAX/JSON
 @bp.route('/getStock', methods=["POST"])
 def getStock():
 	form = request.json
 	symbol = form['symbol']
 
-	print("==================== " , symbol)
 	if 'previous' in form:
 		obj={ 'symbol': current, 'previous': form['previous'], 'current' : form['current'] }
-		return responseOK({'symbol': symbol, })
+		return responseOK({'symbol': symbol })
 	else:
 		stock = getStockInfo(symbol)
 		item =	{	
@@ -106,26 +110,78 @@ def getStock():
 				}
 		return responseOK(item)
 
+
 @bp.route('/purchase', methods=["POST"])
 def purchase():
 	user = request.cookies.get('username').encode("utf-8")
 
+
 	form = request.json
-	symbol = form['symbol']
+	symbol = form['symbol'].encode("utf-8")
 	price = form['price']
+	unit = form['unit'] # unit price
+	quantity = form['quantity']
 
-	print(symbol, float(price) )
+	# Shareholder count
+	obj = stockHolderTable.find_one({'username': user, 'symbol': symbol})
+	if obj == None:
+		stock = stockTable.find_one({'symbol': symbol})
+		shareholder = stock['shareholder'] + 1
 
-	userTable.find_one({'username' : user})
+		query = {'symbol': symbol}
+		new_value = {'$set': {'shareholder': shareholder}}
+		
+		stockTable.update_one(query, new_value) # add 1 to shareholder
+		
+		stockHolderTable.insert({'username': user, 'symbol': symbol })
+
+
+	#--------------------Check if stock existed in previous trnsactions----------------------------------
+	item = userTable.find_one({'username' : user})
+	cash = item['cash']
+
+	# total - stockAmount 
+	cash = cash - float(price)
+
+	# update mongodb to reflect cash change
+	query = {'username': user}
+	new_value = {'$set': {'cash': cash}}
+	userTable.update_one(query, new_value)
 
 	item=	{ 
 				'username': user,
 				'symbol' : symbol,
-				'price' : price 
+				'price' : price,
+				'unit': unit, # unit price
+				'quantity': quantity
 			}
-
-	#tranTable.insert(item)
+	print(item )
+	tranTable.insert(item)
+	#---------------------------------------------
 	return responseOK({'status': 'OK'})
+
+
+@bp.route('/transaction', methods=["GET"])
+def purchase():
+	user = request.cookies.get('username').encode("utf-8")
+	
+
+
+@bp.route('/clean', methods=["POST", "GET"])
+def cleanDataBase():
+	userTable.delete_many({})
+	tranTable.delete_many({})
+	return "clear all"
+
+@bp.route('/show', methods=["GET"])
+def showDB():
+	res = tranTable.find({})
+	count = tranTable.count()
+	print ('transac count = ',count)
+	for i in res:
+		print i
+	
+	return  'transa count = ' + str(count) 
 
 
 def generateStock():
@@ -165,21 +221,5 @@ def getStockInfo(symbol):
 	stock = stock.get_quote()
 	return stock
 
-'''
-@bp.route('/clean', methods=["POST", "GET"])
-def cleanDataBase():
-	userTable.delete_many({})
-	tranTable.delete_many({})
-	return "clear all"
 
 
-@bp.route('/show', methods=["GET"])
-def showDB():
-	res = userTable.find({})
-	count = userTable.count()
-	print ('user count = ',count)
-	for i in res:
-		print i
-	
-	return  'USER count = ' + str(count) 
-'''
